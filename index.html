@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Tournament of Elderglen</title>
+  <style>
+    :root {
+      --ink: #202333;
+      --paper: #fffaf1;
+      --panel: #fffdf8;
+      --sky: #9fd7ff;
+      --grass: #65aa68;
+      --gold: #f0b84b;
+      --berry: #c95678;
+      --violet: #6657c8;
+      --teal: #3f9f9a;
+      --line: #2f3045;
+      --muted: #697080;
+      --danger: #aa3f53;
+      --ok: #2f7d48;
+      --shadow: 0 16px 34px rgba(32, 35, 51, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      background:
+        linear-gradient(180deg, #bfe9ff 0 33%, #f6d36d 33% 35%, #78bf6c 35% 100%);
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(1200px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 22px 0;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 780px;
+      margin-bottom: 8px;
+      font-size: clamp(2.1rem, 5vw, 4.7rem);
+      line-height: 1.03;
+    }
+
+    h2,
+    h3 {
+      line-height: 1.1;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .eyebrow {
+      margin-bottom: 6px;
+      color: #4f3b7a;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .button,
+    .choice,
+    .character-card {
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--gold);
+      box-shadow: 0 4px 0 var(--line);
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+    }
+
+    .button {
+      min-width: 112px;
+      padding: 10px 14px;
+    }
+
+    .choice {
+      min-height: 50px;
+      padding: 10px 12px;
+      background: #f3efff;
+    }
+
+    .button:hover,
+    .choice:hover,
+    .character-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 var(--line);
+    }
+
+    .choice:disabled {
+      color: #6d7180;
+      background: #d8d9e2;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .panel {
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .intro {
+      padding: 20px;
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .character-card {
+      min-height: 185px;
+      padding: 16px;
+      text-align: left;
+      background: var(--paper);
+    }
+
+    .character-card.selected {
+      outline: 4px solid var(--gold);
+      background: #fff1be;
+    }
+
+    .character-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1.25rem;
+    }
+
+    .character-card span {
+      display: block;
+      margin-bottom: 8px;
+      color: #315f3a;
+      font-weight: 800;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.92fr) minmax(330px, 1.7fr) minmax(240px, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .side {
+      padding: 18px;
+    }
+
+    .stage {
+      overflow: hidden;
+    }
+
+    .scene {
+      position: relative;
+      min-height: 310px;
+      overflow: hidden;
+      border-bottom: 2px solid var(--line);
+      background: var(--sky);
+    }
+
+    .scene::before,
+    .scene::after,
+    .sun,
+    .castle,
+    .path,
+    .hero,
+    .sparrow,
+    .cloaks {
+      position: absolute;
+      display: block;
+      content: "";
+    }
+
+    .scene::before {
+      inset: auto 0 0;
+      height: 96px;
+      background: var(--grass);
+    }
+
+    .scene::after {
+      left: 11%;
+      bottom: 67px;
+      width: 78%;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(32, 35, 51, 0.16);
+    }
+
+    .sun {
+      top: 24px;
+      right: 32px;
+      width: 70px;
+      height: 70px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+      background: #ffe58a;
+    }
+
+    .castle {
+      left: 9%;
+      bottom: 90px;
+      width: 90px;
+      height: 86px;
+      border: 2px solid var(--line);
+      background: #d8d9e2;
+    }
+
+    .castle::before,
+    .castle::after {
+      position: absolute;
+      bottom: 0;
+      width: 34px;
+      height: 122px;
+      border: 2px solid var(--line);
+      background: #c8cad8;
+      content: "";
+    }
+
+    .castle::before {
+      left: -28px;
+    }
+
+    .castle::after {
+      right: -28px;
+    }
+
+    .path {
+      right: 12%;
+      bottom: -34px;
+      width: 44%;
+      height: 150px;
+      border: 2px solid var(--line);
+      border-bottom: 0;
+      border-radius: 50% 50% 0 0;
+      background: #d8ac64;
+      transform: perspective(120px) rotateX(36deg);
+    }
+
+    .hero {
+      right: 27%;
+      bottom: 65px;
+      width: 46px;
+      height: 82px;
+      border: 2px solid var(--line);
+      border-radius: 24px 24px 12px 12px;
+      background: var(--berry);
+      z-index: 3;
+    }
+
+    .hero::before {
+      position: absolute;
+      top: -28px;
+      left: 7px;
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+      background: #ffd6aa;
+      content: "";
+    }
+
+    .hero::after {
+      position: absolute;
+      top: -40px;
+      left: 7px;
+      width: 28px;
+      height: 17px;
+      clip-path: polygon(0 100%, 16% 26%, 36% 100%, 56% 20%, 76% 100%, 100% 28%, 100% 100%);
+      background: var(--gold);
+      content: "";
+    }
+
+    .sparrow {
+      right: 45%;
+      top: 74px;
+      width: 34px;
+      height: 18px;
+      border: 2px solid var(--line);
+      border-radius: 50% 50% 45% 45%;
+      background: #c9913a;
+      opacity: 0;
+      transform-origin: center;
+    }
+
+    .sparrow::before,
+    .sparrow::after {
+      position: absolute;
+      top: -10px;
+      width: 22px;
+      height: 16px;
+      border: 2px solid var(--line);
+      border-radius: 50% 50% 0 50%;
+      background: #e3b962;
+      content: "";
+    }
+
+    .sparrow::before {
+      left: -16px;
+      transform: rotate(-24deg);
+    }
+
+    .sparrow::after {
+      right: -16px;
+      transform: scaleX(-1) rotate(-24deg);
+    }
+
+    .cloaks {
+      left: 58%;
+      bottom: 72px;
+      width: 34px;
+      height: 66px;
+      border: 2px solid var(--line);
+      border-radius: 18px 18px 6px 6px;
+      background: #3d4052;
+      opacity: 0;
+      z-index: 2;
+    }
+
+    .cloaks::after {
+      position: absolute;
+      right: -30px;
+      bottom: -2px;
+      width: 32px;
+      height: 60px;
+      border: 2px solid var(--line);
+      border-radius: 18px 18px 6px 6px;
+      background: #4f3f53;
+      content: "";
+    }
+
+    .scene.market .castle,
+    .scene.market .castle::before,
+    .scene.market .castle::after {
+      background: #ffcf7a;
+    }
+
+    .scene.bakery .castle,
+    .scene.bakery .castle::before,
+    .scene.bakery .castle::after {
+      background: #f4bd82;
+    }
+
+    .scene.stables .castle,
+    .scene.stables .castle::before,
+    .scene.stables .castle::after {
+      background: #a86c43;
+    }
+
+    .scene.field .path,
+    .scene.final .path {
+      width: 64%;
+      right: 4%;
+      background: #8fd083;
+    }
+
+    .scene.tent .castle,
+    .scene.tent .castle::before,
+    .scene.tent .castle::after {
+      background: var(--violet);
+    }
+
+    .scene.final .castle,
+    .scene.final .castle::before,
+    .scene.final .castle::after {
+      background: #f7d65f;
+    }
+
+    .scene.show-sparrow .sparrow {
+      opacity: 1;
+      animation: flutter 1.4s ease-in-out infinite alternate;
+    }
+
+    .scene.show-cloaks .cloaks {
+      opacity: 1;
+    }
+
+    @keyframes flutter {
+      from {
+        transform: translateY(-6px) rotate(-5deg);
+      }
+      to {
+        transform: translateY(6px) rotate(7deg);
+      }
+    }
+
+    .copy {
+      padding: 20px 22px 8px;
+    }
+
+    .copy h2 {
+      margin-bottom: 10px;
+      font-size: clamp(1.6rem, 3vw, 2.65rem);
+    }
+
+    .copy p:last-child {
+      margin-bottom: 0;
+      font-size: 1.03rem;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 18px 22px 22px;
+    }
+
+    .stat-grid,
+    .meter-grid {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0 20px;
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 2px solid #e0dccf;
+      border-radius: 8px;
+      background: var(--paper);
+    }
+
+    .stat strong {
+      color: #315f3a;
+    }
+
+    .meter {
+      overflow: hidden;
+      height: 16px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #e7e0cf;
+    }
+
+    .meter span {
+      display: block;
+      height: 100%;
+      width: 50%;
+      background: var(--teal);
+      transition: width 220ms ease;
+    }
+
+    .list {
+      margin: 10px 0 20px;
+      padding-left: 20px;
+    }
+
+    .list li {
+      margin-bottom: 8px;
+    }
+
+    .done {
+      color: var(--ok);
+      font-weight: 800;
+      text-decoration: line-through;
+    }
+
+    .empty {
+      color: var(--muted);
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 18px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 9px;
+      border: 2px solid #ded8c9;
+      border-radius: 999px;
+      background: var(--paper);
+      font-size: 0.88rem;
+      font-weight: 800;
+    }
+
+    .case-board {
+      display: grid;
+      gap: 8px;
+      margin: 10px 0 18px;
+    }
+
+    .case-card {
+      padding: 10px 12px;
+      border: 2px dashed #cfc7b7;
+      border-radius: 8px;
+      background: #fff8df;
+    }
+
+    .case-card.found {
+      border-style: solid;
+      border-color: #78a85d;
+      background: #eef8df;
+    }
+
+    .message-log {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .message-log p {
+      margin: 0;
+      padding: 10px 12px;
+      border-left: 5px solid var(--berry);
+      border-radius: 8px;
+      background: #fff1f6;
+      line-height: 1.35;
+    }
+
+    .ending-banner {
+      margin-top: 12px;
+      padding: 12px;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      background: #fff1be;
+      font-weight: 800;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 950px) {
+      .layout,
+      .character-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+
+      .top-actions {
+        justify-content: flex-start;
+      }
+
+      .scene {
+        min-height: 260px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .shell {
+        width: min(100% - 20px, 1200px);
+        padding: 12px 0;
+      }
+
+      h1 {
+        font-size: 2.05rem;
+      }
+
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .scene {
+        min-height: 230px;
+      }
+
+      .castle {
+        transform: scale(0.85);
+        transform-origin: bottom left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">The Tournament of Elderglen</p>
+        <h1>The Clockwork Sparrow Mystery</h1>
+        <p>Choose a hero, gather clues, protect the frightened tournament horse, and stop a wholesome sabotage mystery before the royal joust begins.</p>
+      </div>
+      <div class="top-actions">
+        <button class="button" id="soundButton" type="button">Sound Off</button>
+        <button class="button" id="newGameButton" type="button">New Game</button>
+      </div>
+    </header>
+
+    <section class="panel intro" id="characterScreen">
+      <h2>Choose Your Hero</h2>
+      <p>Each hero has a special ability that changes the story and unlocks different ways to solve trouble kindly.</p>
+      <div class="character-grid" id="characterGrid"></div>
+      <button class="button" id="startButton" type="button">Begin Quest</button>
+    </section>
+
+    <section class="layout hidden" id="gameScreen">
+      <aside class="panel side">
+        <h2 id="heroName">Hero</h2>
+        <p id="heroAbility"></p>
+        <div class="tag-row" id="badges"></div>
+
+        <h3>Festival Bells</h3>
+        <div class="meter" aria-label="Time before the joust">
+          <span id="timeMeter"></span>
+        </div>
+        <div class="stat-grid" id="stats"></div>
+
+        <h3>Satchel</h3>
+        <ul class="list" id="inventory"></ul>
+      </aside>
+
+      <section class="stage panel">
+        <div class="scene market" id="sceneArt" aria-hidden="true">
+          <span class="sun"></span>
+          <span class="castle"></span>
+          <span class="path"></span>
+          <span class="hero"></span>
+          <span class="sparrow"></span>
+          <span class="cloaks"></span>
+        </div>
+        <div class="copy">
+          <p class="eyebrow" id="locationType">Festival Square</p>
+          <h2 id="locationName">Merchant Row</h2>
+          <p id="locationDescription"></p>
+        </div>
+        <div class="actions" id="actions"></div>
+      </section>
+
+      <aside class="panel side">
+        <h2>Case Board</h2>
+        <div class="case-board" id="caseBoard"></div>
+
+        <h2>Quest</h2>
+        <ol class="list" id="questList"></ol>
+
+        <h2>Story</h2>
+        <div class="message-log" id="messageLog" aria-live="polite"></div>
+        <div class="ending-banner hidden" id="endingBanner"></div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const MAX_TIME = 14;
+
+    const heroes = {
+      gunnarr: {
+        name: "Gunnarr",
+        abilityName: "Shield Up",
+        abilityText: "Prevents damage and protects townsfolk during danger events.",
+        color: "#4f8f5b",
+        stats: { health: 115, kindness: 5, courage: 9, cleverness: 5, trust: 2, stars: 0 },
+        ending:
+          "Gunnarr raises his shield as the crowd cheers. The horse is safe, the young page is safe, and Elderglen remembers him as the brave protector who saved the joust without a single harsh word."
+      },
+      davynn: {
+        name: "Davynn",
+        abilityName: "Inspect Clue",
+        abilityText: "Reveals hidden clues, improves puzzle outcomes, and works with the clockwork sparrow.",
+        color: "#6657c8",
+        stats: { health: 100, kindness: 5, courage: 6, cleverness: 9, trust: 1, stars: 0 },
+        ending:
+          "Davynn's clockwork sparrow circles above the field, brass wings shining in the sun. Davynn explains every clue so clearly that even the cloaked strangers nod along and promise to make things right."
+      },
+      astrid: {
+        name: "Astrid",
+        abilityName: "Gentle Heart",
+        abilityText: "Calms animals, earns trust, and resolves some conflicts peacefully.",
+        color: "#c95678",
+        stats: { health: 105, kindness: 9, courage: 7, cleverness: 6, trust: 3, stars: 0 },
+        ending:
+          "Astrid kneels beside the frightened horse and speaks softly to everyone, even the nervous saboteurs. The tournament is saved, and Elderglen celebrates the quiet courage of a gentle heart."
+      }
+    };
+
+    const itemNames = {
+      bread: "Fresh Bread",
+      cakes: "Sleepy Dragon Cakes",
+      sparrow: "Clockwork Sparrow",
+      ribbon: "Stable Ribbon",
+      whistle: "Page's Silver Whistle",
+      badge: "Tournament Badge"
+    };
+
+    const clueData = {
+      knot: {
+        name: "Strange Knot",
+        hint: "A black cord tied with a sailor's loop, found near Merchant Row."
+      },
+      powder: {
+        name: "Black Powder",
+        hint: "Harmless smoke-popper powder hidden by the jousting barrier."
+      },
+      saddle: {
+        name: "Tampered Saddle",
+        hint: "A loosened strap at the Royal Stables, tied to startle a rider."
+      }
+    };
+
+    const startingFlags = {
+      bakerHelped: false,
+      cakesBought: false,
+      strangersSpotted: false,
+      sparrowFound: false,
+      sparrowScouted: false,
+      horseCalmed: false,
+      horseProtected: false,
+      saddleFixed: false,
+      powderSecured: false,
+      pageProtected: false,
+      finalUnlocked: false,
+      finalAbilityUsed: false,
+      sabotageStopped: false,
+      bestSaved: false
+    };
+
+    const locations = {
+      market: {
+        name: "Merchant Row",
+        type: "Festival Square",
+        scene: "market",
+        description:
+          "Banners snap above the stalls. Two suspicious cloaked strangers slip through the crowd carrying a coil of black cord.",
+        actions: [
+          { label: "Baker's Stall", type: "move", to: "bakery" },
+          { label: "Royal Stables", type: "move", to: "stables" },
+          { label: "Jousting Field", type: "move", to: "field" },
+          { label: "Clockwork Tent", type: "move", to: "tent" },
+          { label: "Watch Strangers", type: "event", event: "spotStrangers", once: "strangersSpotted", time: 1 },
+          { label: "Inspect Rope Scrap", type: "event", event: "findKnot", time: 1 }
+        ]
+      },
+      bakery: {
+        name: "Baker's Stall",
+        type: "Warm Oven",
+        scene: "bakery",
+        description:
+          "The baker is icing tiny cakes shaped like sleepy dragons. The cinnamon smell drifts all the way to the tournament gate.",
+        actions: [
+          { label: "Merchant Row", type: "move", to: "market" },
+          { label: "Buy Dragon Cakes", type: "event", event: "buyCakes", once: "cakesBought", time: 1 },
+          { label: "Help Baker", type: "event", event: "helpBaker", once: "bakerHelped", time: 1 },
+          { label: "Ask About Strangers", type: "event", event: "askBaker", time: 1 }
+        ]
+      },
+      stables: {
+        name: "Royal Stables",
+        type: "Quiet Barn",
+        scene: "stables",
+        description:
+          "A frightened tournament horse trembles in its stall. The saddle hangs crookedly, and the stall door has fresh scratches.",
+        actions: [
+          { label: "Merchant Row", type: "move", to: "market" },
+          { label: "Jousting Field", type: "move", to: "field" },
+          { label: "Calm Horse", type: "event", event: "calmHorse", time: 1 },
+          { label: "Inspect Saddle", type: "event", event: "findSaddle", time: 1 },
+          { label: "Fix Saddle Strap", type: "event", event: "fixSaddle", time: 1 },
+          { label: "Shield the Stall", type: "event", event: "shieldHorse", once: "horseProtected", time: 1 }
+        ]
+      },
+      field: {
+        name: "Jousting Field",
+        type: "Tournament Lists",
+        scene: "field",
+        description:
+          "The royal joust will begin soon. A young page waves flags by the barrier where a faint smoky mark stains the grass.",
+        actions: [
+          { label: "Merchant Row", type: "move", to: "market" },
+          { label: "Royal Stables", type: "move", to: "stables" },
+          { label: "Clockwork Tent", type: "move", to: "tent" },
+          { label: "Inspect Powder", type: "event", event: "findPowder", time: 1 },
+          { label: "Secure Barrier", type: "event", event: "securePowder", time: 1 },
+          { label: "Protect Page", type: "event", event: "protectPage", once: "pageProtected", time: 1 },
+          { label: "Call Final Check", type: "event", event: "unlockFinal" }
+        ]
+      },
+      tent: {
+        name: "Clockwork Tent",
+        type: "Inventor's Pavilion",
+        scene: "tent",
+        description:
+          "Gears tick softly inside the inventor's tent. A brass clockwork sparrow sits on a perch with a little key in its back.",
+        actions: [
+          { label: "Merchant Row", type: "move", to: "market" },
+          { label: "Jousting Field", type: "move", to: "field" },
+          { label: "Wake Sparrow", type: "event", event: "takeSparrow", once: "sparrowFound", time: 1 },
+          { label: "Inspect Clues", type: "event", event: "inspectClues", time: 1 },
+          { label: "Send Sparrow", type: "event", event: "sendSparrow", once: "sparrowScouted", time: 1 }
+        ]
+      },
+      final: {
+        name: "Before the Joust",
+        type: "Final Scene",
+        scene: "final",
+        description:
+          "The trumpet lifts for the first call. The cloaked strangers hurry toward the barrier, hoping to startle the horse with smoke and a snapping rope.",
+        actions: [
+          { label: "Present Evidence", type: "event", event: "presentEvidence" },
+          { label: "Use Special Ability", type: "event", event: "useFinalAbility" },
+          { label: "Offer Dragon Cakes", type: "event", event: "offerCakesFinal" },
+          { label: "Send Sparrow", type: "event", event: "sendSparrowFinal" },
+          { label: "Stop Sabotage", type: "event", event: "stopSabotage" },
+          { label: "Review Clues", type: "move", to: "tent" }
+        ]
+      },
+      ending: {
+        name: "Tournament Saved",
+        type: "Royal Celebration",
+        scene: "final",
+        description: "",
+        actions: [
+          { label: "Play Again", type: "event", event: "reset" }
+        ]
+      }
+    };
+
+    let selectedHero = "astrid";
+    let soundEnabled = false;
+    let audioContext = null;
+    let state = createState(selectedHero);
+
+    const characterScreen = document.getElementById("characterScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const characterGrid = document.getElementById("characterGrid");
+    const startButton = document.getElementById("startButton");
+    const newGameButton = document.getElementById("newGameButton");
+    const soundButton = document.getElementById("soundButton");
+    const heroName = document.getElementById("heroName");
+    const heroAbility = document.getElementById("heroAbility");
+    const badges = document.getElementById("badges");
+    const stats = document.getElementById("stats");
+    const timeMeter = document.getElementById("timeMeter");
+    const inventory = document.getElementById("inventory");
+    const sceneArt = document.getElementById("sceneArt");
+    const locationType = document.getElementById("locationType");
+    const locationName = document.getElementById("locationName");
+    const locationDescription = document.getElementById("locationDescription");
+    const actions = document.getElementById("actions");
+    const caseBoard = document.getElementById("caseBoard");
+    const questList = document.getElementById("questList");
+    const messageLog = document.getElementById("messageLog");
+    const endingBanner = document.getElementById("endingBanner");
+
+    function createState(heroKey) {
+      const hero = heroes[heroKey];
+      const starterItems = heroKey === "davynn" ? ["bread", "sparrow"] : ["bread"];
+
+      return {
+        heroKey,
+        hero,
+        currentLocation: "market",
+        time: MAX_TIME,
+        gold: 25,
+        inventory: starterItems,
+        clues: [],
+        flags: {
+          ...startingFlags,
+          sparrowFound: heroKey === "davynn"
+        },
+        stats: { ...hero.stats },
+        messages: [`${hero.name} arrives at Elderglen as trumpets welcome the tournament crowd.`],
+        endingTitle: "",
+        endingText: ""
+      };
+    }
+
+    function renderCharacterSelect() {
+      characterGrid.replaceChildren(
+        ...Object.entries(heroes).map(([key, hero]) => {
+          const card = document.createElement("button");
+          card.type = "button";
+          card.className = `character-card ${selectedHero === key ? "selected" : ""}`;
+          card.innerHTML = `
+            <strong>${hero.name}</strong>
+            <span>${hero.abilityName}</span>
+            <p>${hero.abilityText}</p>
+          `;
+          card.addEventListener("click", () => {
+            selectedHero = key;
+            playTone("tick");
+            renderCharacterSelect();
+          });
+          return card;
+        })
+      );
+    }
+
+    function startGame() {
+      state = createState(selectedHero);
+      characterScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+      playTone("success");
+      render();
+    }
+
+    function resetGame() {
+      selectedHero = "astrid";
+      state = createState(selectedHero);
+      characterScreen.classList.remove("hidden");
+      gameScreen.classList.add("hidden");
+      endingBanner.classList.add("hidden");
+      renderCharacterSelect();
+    }
+
+    function addMessage(message) {
+      state.messages.unshift(message);
+      state.messages = state.messages.slice(0, 5);
+    }
+
+    function spendTime(amount = 0) {
+      if (amount <= 0 || state.currentLocation === "ending") return;
+      state.time = Math.max(0, state.time - amount);
+      if (state.time === 3) {
+        addMessage("Only three festival bells remain before the joust. The clues matter now.");
+      }
+      if (state.time === 0 && state.currentLocation !== "final" && !state.flags.sabotageStopped) {
+        state.currentLocation = "final";
+        state.flags.finalUnlocked = true;
+        addMessage("The final trumpet sounds. Ready or not, the joust is about to begin.");
+      }
+    }
+
+    function addItem(item) {
+      state.inventory.push(item);
+    }
+
+    function hasItem(item) {
+      return state.inventory.includes(item);
+    }
+
+    function removeItem(item) {
+      const index = state.inventory.indexOf(item);
+      if (index === -1) return false;
+      state.inventory.splice(index, 1);
+      return true;
+    }
+
+    function addClue(clue) {
+      if (state.clues.includes(clue)) {
+        addMessage(`The ${clueData[clue].name} is already pinned to the case board.`);
+        return false;
+      }
+      state.clues.push(clue);
+      state.stats.stars += 1;
+      playTone("clue");
+      return true;
+    }
+
+    function awardBadge(label) {
+      if (!state.badges) state.badges = [];
+      if (!state.badges.includes(label)) state.badges.push(label);
+    }
+
+    function move(to) {
+      state.currentLocation = to;
+      addMessage(`${state.hero.name} heads to ${locations[to].name}.`);
+      playTone("tick");
+      render();
+    }
+
+    function useAbility(context) {
+      if (state.heroKey === "gunnarr") {
+        if (context === "danger" || context === "final") {
+          state.stats.stars += 1;
+          awardBadge("Shield Star");
+          addMessage("Gunnarr uses Shield Up. His bright shield keeps everyone safe.");
+          playTone("success");
+          return true;
+        }
+        addMessage("Gunnarr keeps his shield ready, but there is no danger here.");
+        return false;
+      }
+
+      if (state.heroKey === "davynn") {
+        state.stats.cleverness += 1;
+        awardBadge("Detective Star");
+        addMessage("Davynn uses Inspect Clue. Tiny details become clear at once.");
+        playTone("clue");
+        return true;
+      }
+
+      if (state.heroKey === "astrid") {
+        if (context === "animal" || context === "conflict" || context === "final") {
+          state.stats.kindness += 1;
+          state.stats.trust += 1;
+          awardBadge("Gentle Star");
+          addMessage("Astrid uses Gentle Heart. Her calm voice helps everyone breathe again.");
+          playTone("success");
+          return true;
+        }
+        state.stats.trust += 1;
+        addMessage("Astrid listens kindly and earns trust from the festival folk.");
+        return true;
+      }
+    }
+
+    function evidenceReady() {
+      return state.clues.includes("knot") && state.clues.includes("powder") && state.clues.includes("saddle");
+    }
+
+    function horseSafe() {
+      return state.flags.horseCalmed || state.flags.horseProtected;
+    }
+
+    function fieldSafe() {
+      return state.flags.powderSecured || state.flags.finalAbilityUsed || state.flags.sparrowScouted;
+    }
+
+    function finalReady() {
+      return evidenceReady() && horseSafe() && fieldSafe();
+    }
+
+    const events = {
+      spotStrangers() {
+        if (state.flags.strangersSpotted) {
+          addMessage("The cloaked strangers are still trying to blend into the crowd.");
+          return;
+        }
+        state.flags.strangersSpotted = true;
+        state.stats.cleverness += 1;
+        addMessage("You spot two cloaked strangers whispering about rope, smoke, and the stables.");
+      },
+
+      findKnot() {
+        if (state.heroKey === "davynn") useAbility("clue");
+        if (addClue("knot")) {
+          addMessage("You find a Strange Knot tied in black cord. It matches the rope carried by the cloaked strangers.");
+        }
+      },
+
+      buyCakes() {
+        if (state.flags.cakesBought) {
+          addMessage("The Sleepy Dragon Cakes are already wrapped in your satchel.");
+          return;
+        }
+        if (state.gold < 8) {
+          addMessage("You need 8 gold for Sleepy Dragon Cakes.");
+          return;
+        }
+        state.gold -= 8;
+        state.flags.cakesBought = true;
+        addItem("cakes");
+        addMessage("The baker sells you Sleepy Dragon Cakes, a gentle treat for jumpy animals and nervous crowds.");
+        playTone("success");
+      },
+
+      helpBaker() {
+        if (state.flags.bakerHelped) {
+          addMessage("The baker waves happily from behind a tidy tower of dragon cakes.");
+          return;
+        }
+        state.flags.bakerHelped = true;
+        state.stats.kindness += 1;
+        state.stats.trust += 1;
+        state.stats.stars += 1;
+        awardBadge("Bakery Helper");
+        addMessage("You help frost the cakes. The baker says the strangers smelled faintly of smoke powder.");
+      },
+
+      askBaker() {
+        if (state.flags.bakerHelped || state.heroKey === "astrid" || state.stats.trust >= 3) {
+          addMessage("The baker trusts you and remembers the strangers asking which horse would ride first.");
+          state.flags.strangersSpotted = true;
+          return;
+        }
+        addMessage("The baker is too busy to talk yet. Helping first might earn their trust.");
+      },
+
+      calmHorse() {
+        if (state.flags.horseCalmed) {
+          addMessage("The tournament horse is calm now and nudges your shoulder gently.");
+          return;
+        }
+
+        if (state.heroKey === "astrid") {
+          useAbility("animal");
+          state.flags.horseCalmed = true;
+          state.stats.stars += 2;
+          addItem("ribbon");
+          addMessage("Astrid calms the frightened tournament horse and receives a Stable Ribbon.");
+          return;
+        }
+
+        if (hasItem("cakes")) {
+          removeItem("cakes");
+          state.flags.horseCalmed = true;
+          state.stats.kindness += 1;
+          state.stats.trust += 1;
+          state.stats.stars += 2;
+          addItem("ribbon");
+          addMessage("The horse nibbles a Sleepy Dragon Cake and settles peacefully.");
+          playTone("success");
+          return;
+        }
+
+        addMessage("The horse is too frightened. Sleepy Dragon Cakes or Astrid's Gentle Heart would help.");
+      },
+
+      findSaddle() {
+        if (state.heroKey === "davynn") useAbility("clue");
+        if (addClue("saddle")) {
+          addMessage("You find the Tampered Saddle. Someone loosened the strap so a rider would wobble.");
+        }
+      },
+
+      fixSaddle() {
+        if (!state.clues.includes("saddle")) {
+          addMessage("You need to inspect the saddle before fixing it.");
+          return;
+        }
+        if (state.flags.saddleFixed) {
+          addMessage("The saddle strap is already safe and snug.");
+          return;
+        }
+        if (state.stats.cleverness >= 6 || state.heroKey === "davynn") {
+          state.flags.saddleFixed = true;
+          state.stats.stars += 1;
+          addMessage("You retie the saddle strap with a proper tournament knot.");
+          playTone("success");
+        } else {
+          addMessage("The knot is tricky. Davynn's Inspect Clue or more cleverness would help.");
+        }
+      },
+
+      shieldHorse() {
+        if (state.heroKey !== "gunnarr") {
+          addMessage("The stall needs a steady protector. Gunnarr's Shield Up would be perfect here.");
+          return;
+        }
+        if (state.flags.horseProtected) {
+          addMessage("Gunnarr is already standing guard by the stall.");
+          return;
+        }
+        state.flags.horseProtected = true;
+        useAbility("danger");
+        addMessage("Gunnarr protects the stall door when a cart rattles past, keeping the horse from bolting.");
+      },
+
+      findPowder() {
+        if (state.heroKey === "davynn") useAbility("clue");
+        if (addClue("powder")) {
+          addMessage("You collect a pinch of Black Powder from a harmless smoke popper near the barrier.");
+        }
+      },
+
+      securePowder() {
+        if (!state.clues.includes("powder")) {
+          addMessage("You need to inspect the smoky mark before you can secure the barrier.");
+          return;
+        }
+        if (state.flags.powderSecured) {
+          addMessage("The barrier is already clear of smoke poppers.");
+          return;
+        }
+        state.flags.powderSecured = true;
+        state.stats.stars += 1;
+        addMessage("You sweep away the hidden smoke poppers and mark the barrier safe.");
+        playTone("success");
+      },
+
+      protectPage() {
+        if (state.flags.pageProtected) {
+          addMessage("The page is already standing safely behind the marshals.");
+          return;
+        }
+        state.flags.pageProtected = true;
+        addItem("whistle");
+
+        if (state.heroKey === "gunnarr") {
+          useAbility("danger");
+          state.stats.courage += 1;
+          addMessage("Gunnarr shields the young page from the rushing crowd and earns a Silver Whistle.");
+          return;
+        }
+
+        state.stats.health -= 5;
+        state.stats.courage += 1;
+        addMessage("You guide a startled page away from the crowd. You are safe, just a little bumped, and the page gives you a Silver Whistle.");
+      },
+
+      takeSparrow() {
+        if (state.flags.sparrowFound) {
+          addMessage("The Clockwork Sparrow chirps softly from your satchel.");
+          return;
+        }
+        state.flags.sparrowFound = true;
+        addItem("sparrow");
+        addMessage("You wind the Clockwork Sparrow. It clicks, bows, and hops into your satchel.");
+        playTone("success");
+      },
+
+      inspectClues() {
+        if (state.heroKey === "davynn") {
+          useAbility("clue");
+          if (!state.clues.includes("knot")) {
+            addClue("knot");
+            addMessage("Davynn notices black cord fibers caught in the tent latch. The Strange Knot goes onto the case board.");
+            return;
+          }
+        }
+
+        if (state.clues.length >= 2) {
+          state.stats.cleverness += 1;
+          addMessage("The clues point to a plan: smoke at the barrier, a snapping rope, and a loosened saddle.");
+        } else {
+          addMessage("You need more clues before the whole plot makes sense.");
+        }
+      },
+
+      sendSparrow() {
+        if (!hasItem("sparrow")) {
+          addMessage("The Clockwork Sparrow is still waiting on its perch.");
+          return;
+        }
+        if (state.flags.sparrowScouted) {
+          addMessage("The sparrow has already mapped the strangers' path.");
+          return;
+        }
+        if (state.heroKey === "davynn") {
+          state.stats.stars += 2;
+          state.flags.strangersSpotted = true;
+          state.flags.sparrowScouted = true;
+          addMessage("Davynn sends the Clockwork Sparrow above the crowd. It spots the strangers hiding near the final barrier.");
+          playTone("success");
+          return;
+        }
+        if (state.stats.cleverness >= 7) {
+          state.flags.sparrowScouted = true;
+          addMessage("With careful timing, you send the sparrow circling over the jousting field.");
+          playTone("success");
+          return;
+        }
+        addMessage("The sparrow flutters in a loop. Davynn's careful instructions would make it much more helpful.");
+      },
+
+      unlockFinal() {
+        if (!evidenceReady()) {
+          addMessage("You need all three clues first: Strange Knot, Black Powder, and Tampered Saddle.");
+          return;
+        }
+        if (!horseSafe()) {
+          addMessage("The frightened tournament horse must be calmed or protected before the joust can be safe.");
+          return;
+        }
+        state.flags.finalUnlocked = true;
+        state.currentLocation = "final";
+        addMessage("With the clues gathered, you hurry to the jousting field before the first trumpet call.");
+      },
+
+      presentEvidence() {
+        if (!evidenceReady()) {
+          addMessage("The marshals need all three clues before they can understand the sabotage plot.");
+          return;
+        }
+        state.stats.trust += 2;
+        state.flags.strangersSpotted = true;
+        addMessage("You present the Strange Knot, Black Powder, and Tampered Saddle. The marshals believe you.");
+        playTone("clue");
+      },
+
+      useFinalAbility() {
+        if (state.flags.finalAbilityUsed) {
+          addMessage("Your special ability has already shaped the final plan.");
+          return;
+        }
+        state.flags.finalAbilityUsed = useAbility("final");
+      },
+
+      offerCakesFinal() {
+        if (!hasItem("cakes")) {
+          addMessage("You do not have Sleepy Dragon Cakes right now.");
+          return;
+        }
+        removeItem("cakes");
+        state.stats.trust += 1;
+        state.flags.horseCalmed = true;
+        addMessage("You share Sleepy Dragon Cakes with the horse team. Everyone steadies before the joust.");
+        playTone("success");
+      },
+
+      sendSparrowFinal() {
+        if (!hasItem("sparrow")) {
+          addMessage("The Clockwork Sparrow is still in the inventor's tent.");
+          return;
+        }
+        if (state.flags.sparrowScouted) {
+          addMessage("The sparrow is already circling overhead with the marshals watching.");
+          return;
+        }
+        state.flags.sparrowScouted = true;
+        state.flags.strangersSpotted = true;
+        addMessage("The Clockwork Sparrow swoops over the barrier and points the marshals toward the hidden cord.");
+        playTone("success");
+      },
+
+      stopSabotage() {
+        if (!evidenceReady()) {
+          addMessage("You need stronger proof before anyone will stop the joust.");
+          return;
+        }
+        if (!horseSafe()) {
+          addMessage("The horse is still frightened. Calm or protect it first.");
+          return;
+        }
+        if (!fieldSafe()) {
+          addMessage("The barrier still needs one more safety step: secure it, use a special ability, or send the sparrow.");
+          return;
+        }
+        finishGame();
+      },
+
+      reset() {
+        resetGame();
+      }
+    };
+
+    function finishGame() {
+      if (state.flags.sabotageStopped) return;
+
+      state.flags.sabotageStopped = true;
+      state.stats.stars += 3;
+      addItem("badge");
+      awardBadge("Joust Saver");
+      state.currentLocation = "ending";
+      state.endingTitle = `${state.hero.name}'s Ending`;
+      state.endingText = state.hero.ending;
+
+      const bestStars = getBestStars();
+      if (state.stats.stars > bestStars) {
+        saveBestStars(state.stats.stars);
+        state.flags.bestSaved = true;
+      }
+
+      addMessage("The cloaked strangers admit they were afraid their village champion would lose. The marshals guide them away kindly, and the joust begins safely.");
+      playTone("win");
+      render();
+    }
+
+    function handleAction(action) {
+      if (action.type === "move") {
+        move(action.to);
+        return;
+      }
+
+      if (action.once && state.flags[action.once]) {
+        addMessage("That helpful step is already complete.");
+        render();
+        return;
+      }
+
+      spendTime(action.time || 0);
+      events[action.event]();
+      render();
+    }
+
+    function handleActionClick(event) {
+      const button = event.target.closest("button[data-action-index]");
+      if (!button) return;
+
+      const location = locations[state.currentLocation];
+      const action = location.actions[Number(button.dataset.actionIndex)];
+      if (!action || button.disabled) return;
+
+      handleAction(action);
+    }
+
+    function getQuestSteps() {
+      return [
+        { text: "Spot the suspicious cloaked strangers", done: state.flags.strangersSpotted },
+        { text: "Find the Strange Knot", done: state.clues.includes("knot") },
+        { text: "Find the Black Powder", done: state.clues.includes("powder") },
+        { text: "Find the Tampered Saddle", done: state.clues.includes("saddle") },
+        { text: "Calm or protect the frightened tournament horse", done: horseSafe() },
+        { text: "Make the jousting field safe", done: fieldSafe() },
+        { text: "Stop the sabotage before the joust", done: state.flags.sabotageStopped }
+      ];
+    }
+
+    function getBadges() {
+      const earned = state.badges || [];
+      if (state.flags.bakerHelped && !earned.includes("Bakery Helper")) earned.push("Bakery Helper");
+      if (state.flags.sparrowScouted && !earned.includes("Sky Scout")) earned.push("Sky Scout");
+      if (state.flags.saddleFixed && !earned.includes("Knot Fixer")) earned.push("Knot Fixer");
+      if (state.flags.powderSecured && !earned.includes("Barrier Guard")) earned.push("Barrier Guard");
+      return earned;
+    }
+
+    function render() {
+      const location = locations[state.currentLocation];
+
+      heroName.textContent = state.hero.name;
+      heroAbility.textContent = `${state.hero.abilityName}: ${state.hero.abilityText}`;
+
+      badges.replaceChildren(
+        ...getBadges().map(badge => {
+          const item = document.createElement("span");
+          item.className = "tag";
+          item.textContent = badge;
+          return item;
+        })
+      );
+
+      const bestStars = getBestStars();
+      const timePercent = Math.max(0, Math.round((state.time / MAX_TIME) * 100));
+      timeMeter.style.width = `${timePercent}%`;
+      timeMeter.style.background = state.time <= 3 ? "var(--danger)" : "var(--teal)";
+
+      const statRows = [
+        ["Health", state.stats.health],
+        ["Gold", state.gold],
+        ["Kindness", state.stats.kindness],
+        ["Courage", state.stats.courage],
+        ["Cleverness", state.stats.cleverness],
+        ["Trust", state.stats.trust],
+        ["Stars", state.stats.stars],
+        ["Best", bestStars]
+      ];
+
+      stats.replaceChildren(
+        ...statRows.map(([label, value]) => {
+          const row = document.createElement("div");
+          row.className = "stat";
+          row.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+          return row;
+        })
+      );
+
+      renderInventory();
+      renderCaseBoard();
+      renderScene(location);
+      renderActions(location);
+      renderQuest();
+      renderMessages();
+      renderEnding();
+    }
+
+    function renderInventory() {
+      if (state.inventory.length === 0) {
+        inventory.innerHTML = `<li class="empty">Nothing yet</li>`;
+        return;
+      }
+
+      const counts = state.inventory.reduce((items, item) => {
+        items[item] = (items[item] || 0) + 1;
+        return items;
+      }, {});
+
+      inventory.replaceChildren(
+        ...Object.entries(counts).map(([item, count]) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = `${itemNames[item]}${count > 1 ? ` x${count}` : ""}`;
+          return listItem;
+        })
+      );
+    }
+
+    function renderCaseBoard() {
+      caseBoard.replaceChildren(
+        ...Object.entries(clueData).map(([key, clue]) => {
+          const card = document.createElement("div");
+          const found = state.clues.includes(key);
+          card.className = `case-card ${found ? "found" : ""}`;
+          card.innerHTML = `<strong>${found ? clue.name : "Unknown Clue"}</strong><p>${found ? clue.hint : "Keep searching Elderglen for evidence."}</p>`;
+          return card;
+        })
+      );
+    }
+
+    function renderScene(location) {
+      const classes = ["scene", location.scene];
+      if (state.flags.sparrowFound || state.flags.sparrowScouted) classes.push("show-sparrow");
+      if (state.flags.strangersSpotted || state.currentLocation === "final") classes.push("show-cloaks");
+
+      sceneArt.className = classes.join(" ");
+      sceneArt.querySelector(".hero").style.background = state.hero.color;
+      locationType.textContent = location.type;
+      locationName.textContent = location.name;
+      locationDescription.textContent = state.currentLocation === "ending" ? state.endingText : location.description;
+    }
+
+    function renderActions(location) {
+      actions.replaceChildren(
+        ...location.actions.map((action, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "choice";
+          button.dataset.actionIndex = index;
+          button.textContent = action.label;
+          button.disabled = Boolean(action.once && state.flags[action.once]);
+          return button;
+        })
+      );
+    }
+
+    function renderQuest() {
+      questList.replaceChildren(
+        ...getQuestSteps().map(step => {
+          const item = document.createElement("li");
+          item.className = step.done ? "done" : "";
+          item.textContent = step.text;
+          return item;
+        })
+      );
+    }
+
+    function renderMessages() {
+      messageLog.replaceChildren(
+        ...state.messages.map(message => {
+          const item = document.createElement("p");
+          item.textContent = message;
+          return item;
+        })
+      );
+    }
+
+    function renderEnding() {
+      if (state.currentLocation !== "ending") {
+        endingBanner.classList.add("hidden");
+        endingBanner.textContent = "";
+        return;
+      }
+
+      endingBanner.classList.remove("hidden");
+      endingBanner.textContent = state.flags.bestSaved
+        ? `${state.endingTitle}: New best score with ${state.stats.stars} stars.`
+        : `${state.endingTitle}: Final score ${state.stats.stars} stars.`;
+    }
+
+    function playTone(kind) {
+      if (!soundEnabled) return;
+      const AudioEngine = window.AudioContext || window.webkitAudioContext;
+      if (!AudioEngine) return;
+      audioContext = audioContext || new AudioEngine();
+
+      const notes = {
+        tick: [320, 0.05],
+        clue: [560, 0.08],
+        success: [660, 0.1],
+        win: [520, 0.08, 660, 0.08, 780, 0.16]
+      }[kind] || [440, 0.08];
+
+      for (let i = 0; i < notes.length; i += 2) {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.frequency.value = notes[i];
+        osc.type = "triangle";
+        gain.gain.value = 0.08;
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        const start = audioContext.currentTime + i * 0.055;
+        osc.start(start);
+        osc.stop(start + notes[i + 1]);
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      soundButton.textContent = soundEnabled ? "Sound On" : "Sound Off";
+      playTone("success");
+    }
+
+    function getBestStars() {
+      try {
+        return Number(localStorage.getItem("elderglenBestStars") || "0");
+      } catch (error) {
+        return 0;
+      }
+    }
+
+    function saveBestStars(stars) {
+      try {
+        localStorage.setItem("elderglenBestStars", String(stars));
+      } catch (error) {
+        state.flags.bestSaved = false;
+      }
+    }
+
+    actions.addEventListener("click", handleActionClick);
+    startButton.addEventListener("click", startGame);
+    newGameButton.addEventListener("click", resetGame);
+    soundButton.addEventListener("click", toggleSound);
+
+    renderCharacterSelect();
+  </script>
+</body>
+</html>
